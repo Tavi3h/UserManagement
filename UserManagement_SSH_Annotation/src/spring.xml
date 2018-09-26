@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans
+	xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="
+        http://www.springframework.org/schema/beans 
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context 
+        http://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/tx 
+        http://www.springframework.org/schema/tx/spring-tx.xsd
+        http://www.springframework.org/schema/aop 
+        http://www.springframework.org/schema/aop/spring-aop.xsd">
+        
+     <!-- 注册数据源：c3p0数据源 -->
+     <bean id="c3p0DataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+         <!-- 数据库连接四要素 -->
+         <property name="driverClass" value="${jdbc.driver}" />
+         <property name="jdbcUrl" value="${jdbc.url}" />
+         <property name="user" value="${jdbc.user}" />
+         <property name="password" value="${jdbc.password}" />
+     </bean>
+     
+     <!-- 添加context约束，然后使用如下标签注册属性文件 -->
+     <context:property-placeholder location="classpath:jdbc.properties" />
+     
+     
+     <!-- 注册SessionFactory -->
+     <bean id="mySessionFactory" class="org.springframework.orm.hibernate5.LocalSessionFactoryBean">
+         <!-- 配置数据源 -->
+         <property name="dataSource" ref="c3p0DataSource" />
+         <!-- 配置要扫描的包 -->
+         <property name="packagesToScan" value="tavish.bit.beans" />     
+         <!-- 配置Hibernate属性 -->
+         <property name="hibernateProperties">
+             <props>
+                 <!-- 配置方言 -->
+                 <prop key="hibernate.dialect">org.hibernate.dialect.MySQL5Dialect</prop>
+                 <!-- 配置session策略 -->
+                 <prop key="hibernate.current_session_context_class">org.springframework.orm.hibernate5.SpringSessionContext</prop>
+                 <!-- 显示SQL语句 -->
+                 <prop key="hibernate.show_sql">true</prop>
+                 <!-- sql语句格式化输出 -->
+                 <prop key="hibernate.format_sql">true</prop>
+             </props>
+         </property>
+     </bean>
+     
+     <!-- 注册事务管理器 -->
+     <bean id="transactionManager" class="org.springframework.orm.hibernate5.HibernateTransactionManager">
+         <property name="sessionFactory" ref="mySessionFactory" />
+     </bean> 
+     
+     <!-- 事务注解驱动 -->
+     <tx:annotation-driven transaction-manager="transactionManager"/>
+     
+     <!-- 组件扫描器 -->
+     <context:component-scan base-package="tavish.bit.*" />
+     
+</beans>

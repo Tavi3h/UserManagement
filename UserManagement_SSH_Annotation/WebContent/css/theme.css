@@ -1,0 +1,72 @@
+body {
+	background: url('../images/background.jpg');
+	font-family: Courier New;
+	text-align: center;
+}
+
+#flower {
+	display: inline;
+}
+
+#logo {
+	width: 150px;
+	height: 150px;
+}
+
+#table {
+	text-align: center;
+	margin: 0 auto;
+}
+
+#table tr:nth-child(odd) {
+	background-color: #BEBEBE;
+}
+
+#table tr:nth-child(even) {
+	background-color: #D3D3D3;
+}
+
+#table tr:nth-child(1) {
+	color: black;
+	background-color: pink;
+}
+
+#table {
+	vertical-align: middle;
+}
+
+#validcode {
+	vertical-align: middle;
+	height: 20px;
+}
+
+.input {
+	vertical-align: middle;
+}
+
+#vcode {
+	width: 79px;
+	vertical-align: middle;
+}
+
+.errorInfo {
+	color: red;
+	font-weight: bold;
+	font-size: 1.5em;
+}
+
+a {
+	text-decoration: none;
+}
+
+a:link {
+	color: blue;
+}
+
+a:visited {
+	color: blue;
+}
+
+a:hover {
+	color: red;
+}

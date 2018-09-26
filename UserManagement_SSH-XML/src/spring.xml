@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans
+	xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+    xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="
+        http://www.springframework.org/schema/beans 
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context 
+        http://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/tx 
+        http://www.springframework.org/schema/tx/spring-tx.xsd
+        http://www.springframework.org/schema/aop 
+        http://www.springframework.org/schema/aop/spring-aop.xsd">
+        
+	<!-- 注册数据源：c3p0数据源 -->
+	<bean id="c3p0DataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+		<!-- 数据库连接四要素 -->
+		<property name="driverClass" value="${jdbc.driver}" />
+		<property name="jdbcUrl" value="${jdbc.url}" />
+		<property name="user" value="${jdbc.user}" />
+		<property name="password" value="${jdbc.password}" />
+	</bean>
+	
+	<!-- 添加context约束，然后使用如下标签注册属性文件 -->
+	<context:property-placeholder location="classpath:jdbc.properties" />
+	 
+	<!-- 注册SessionFactory -->
+	<bean id="mySessionFactory" class="org.springframework.orm.hibernate5.LocalSessionFactoryBean">
+		<!-- 配置数据源 -->
+		<property name="dataSource" ref="c3p0DataSource" />
+		<!-- 配置映射文件所在文件夹 -->
+		<property name="mappingDirectoryLocations" value="classpath:tavish/bit/beans" />		
+		<!-- 配置Hibernate属性 -->
+		<property name="hibernateProperties">
+			<props>
+				<!-- 配置方言 -->
+				<prop key="hibernate.dialect">org.hibernate.dialect.MySQL5Dialect</prop>
+				<!-- 配置session策略 -->
+				<prop key="hibernate.current_session_context_class">org.springframework.orm.hibernate5.SpringSessionContext</prop>
+			</props>
+		</property>
+	</bean>
+	
+	<!-- 注册事务管理器 -->
+	<bean id="transactionManager" class="org.springframework.orm.hibernate5.HibernateTransactionManager">
+		<property name="sessionFactory" ref="mySessionFactory" />
+	</bean>	
+	
+	<!-- 使用AspectJ的AOP事务管理 -->
+	<tx:advice id="txAdvice" transaction-manager="transactionManager">
+		<tx:attributes>
+			<tx:method name="add*" isolation="DEFAULT" propagation="REQUIRED"/>
+			<tx:method name="remove*" isolation="DEFAULT" propagation="REQUIRED"/>
+			<tx:method name="modify*" isolation="DEFAULT" propagation="REQUIRED"/>
+			<tx:method name="get*" isolation="DEFAULT" propagation="REQUIRED" read-only="true"/>
+		</tx:attributes>
+	</tx:advice>
+	
+	<aop:config>
+		<aop:pointcut expression="execution(* *..services.*.*(..))" id="myPointcut"/>
+		<aop:advisor advice-ref="txAdvice" pointcut-ref="myPointcut"/>
+	</aop:config>
+	 
+	<!-- 注册Dao -->
+ 	<bean id="usersDao" class="tavish.bit.model.dao.UsersDaoImpl" >
+		<property name="sessionFactory" ref="mySessionFactory" />
+	</bean>
+	 
+	<!-- 注册Service -->
+	<bean id="usersService" class="tavish.bit.model.services.UsersServiceImpl" >
+		<!-- 配置设值注入 -->
+		<property name="dao" ref="usersDao" />
+	</bean>
+	
+	<!-- 注册Action -->
+	<bean id="valCodeAction" class="tavish.bit.actions.ValidCodeAction" scope="prototype">
+		<property name="vcm" ref="valCodeUtils"/>
+	</bean>
+	<bean id="loginAction" class="tavish.bit.actions.LoginAction" scope="prototype">
+		<property name="userInfoUtils" ref="userInfoUtils"/>
+		<property name="cookieUtils" ref="cookieUtils"/>
+	</bean>
+	<bean id="logoffAction" class="tavish.bit.actions.LogoffAction" scope="prototype" />
+	<bean id="manageAction" class="tavish.bit.actions.ManageusersAction" scope="prototype">
+		<property name="service" ref="usersService"/>
+	</bean>
+	<bean id="delUserAction" class="tavish.bit.actions.DelUserAction" scope="prototype">
+		<property name="service" ref="usersService"/>
+	</bean>
+	<bean id="updateUserAction" class="tavish.bit.actions.UpdateUserAction" scope="prototype">
+		<property name="service" ref="usersService"/>
+	</bean>
+	<bean id="addUserAction" class="tavish.bit.actions.AddUserAction" scope="prototype">
+		<property name="service" ref="usersService"/>
+	</bean>
+	<bean id="queryUserAction" class="tavish.bit.actions.QueryUserAction" scope="prototype">
+		<property name="service" ref="usersService"/>
+	</bean>
+	<bean id="delCookieAction" class="tavish.bit.actions.DelCookieAction" scope="prototype">
+		<property name="cookieUtils" ref="cookieUtils"/>
+	</bean>
+	
+	<!-- 注册utils -->
+	<bean id="valCodeUtils" class="tavish.bit.utils.ValCodeUtils" scope="prototype" />
+	<bean id="cookieUtils" class="tavish.bit.utils.CookieUtils"/>
+	<bean id="userInfoUtils" class="tavish.bit.utils.UserInfoUtils">
+		<property name="service" ref="usersService"/>
+	</bean>
+	
+	<!-- 注册拦截器 -->
+	<bean id="permissionInteceptor" class="tavish.bit.interceptor.PermissionInterceptor">
+		<property name="userInfoUtils" ref="userInfoUtils"/>
+		<property name="cookieUtils" ref="cookieUtils"/>
+	</bean>
+</beans>

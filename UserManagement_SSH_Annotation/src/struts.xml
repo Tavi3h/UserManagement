@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC
+	"-//Apache Software Foundation//DTD Struts Configuration 2.5//EN"
+	"http://struts.apache.org/dtds/struts-2.5.dtd">
+<struts>
+	<package name="interceptors" extends="struts-default" abstract="true">
+		
+		<!-- 定义拦截器及拦截器栈 -->
+		<interceptors>
+			<interceptor name="permission" class="permission" />
+			<interceptor name="grade" class="grade" />
+			<interceptor-stack name="permissionStack">
+				<interceptor-ref name="permission" />
+				<interceptor-ref name="grade" />
+				<interceptor-ref name="defaultStack" />
+			</interceptor-stack>
+		</interceptors>
+		
+		<!-- 定义默认拦截器栈 -->
+		<default-interceptor-ref name="permissionStack" />
+		
+		<!-- 定义全局视图 -->
+		<global-results>
+			<result name="login" type="redirect">
+				<param name="location">/index.jsp</param>
+				<param name="errmsg">LoginPlease</param>
+			</result>
+			<result name="forbidden" type="redirect">
+				<param name="location">/forbidden.jsp</param>
+			</result>
+		</global-results>
+	</package>
+</struts>

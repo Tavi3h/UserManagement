@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE struts PUBLIC
+	"-//Apache Software Foundation//DTD Struts Configuration 2.5//EN"
+	"http://struts.apache.org/dtds/struts-2.5.dtd">
+	
+<struts>
+	<!-- 用于生成验证码的Action，不经过任何自定义拦截器 -->
+	<package name="util" namespace="/util" extends="struts-default">
+		<action name="valcode" class="valCodeAction" />
+	</package>
+	
+	<package name="serviceAction" namespace="/service" extends="struts-default">
+	
+		<interceptors>
+			<!-- 定义登录检查拦截器 -->
+			<interceptor name="permission" class="permissionInteceptor" />	
+			
+			<!-- 定义权限拦截器 -->
+			<interceptor name="gradeCheck" class="tavish.bit.interceptor.GradeInterceptor"/>
+			
+			<interceptor-stack name="permissionStack">
+				<interceptor-ref name="permission" />
+				<interceptor-ref name="gradeCheck" />
+				<interceptor-ref name="defaultStack" />
+			</interceptor-stack>
+		</interceptors>
+	
+		<!-- 定义默认拦截器栈 -->
+		<default-interceptor-ref name="permissionStack" />
+		
+		<!-- 定义全局视图 -->
+		<global-results>
+			<result name="login" type="redirect">
+				<param name="location">/index.jsp</param>
+				<param name="errmsg">LoginPlease</param>
+			</result>
+			<result name="forbidden" type="redirect">
+				<param name="location">/forbidden.jsp</param>
+			</result>
+		</global-results>
+		
+		<!-- 允许使用通配符动态调用方法 -->
+		<global-allowed-methods>regex:.*</global-allowed-methods>
+			
+		<!-- 登录Action -->
+		<action name="login" class="loginAction">
+			<!-- 该action不经过权限拦截器 -->
+			<interceptor-ref name="permission" />
+			<interceptor-ref name="defaultStack" />
+			<result name="input">/index.jsp</result>
+			<result name="success">/WEB-INF/jsp/main.jsp</result>
+		</action>
+		
+		<!-- 登出Action -->
+		<action name="logoff" class="logoffAction">
+			<result type="redirect">/index.jsp</result>
+		</action>	
+		
+		<!-- 进入管理页面Action -->
+		<action name="manage" class="manageAction">
+			<result name="success">/WEB-INF/jsp/manageusers.jsp</result>
+		</action>
+		
+		<!-- 删除用户Action -->
+		<action name="delUser" class="delUserAction">
+			<result name="success">/WEB-INF/jsp/opsuccess.jsp</result>
+		</action>
+		
+		<!-- 返回main.jsp的Action -->
+		<action name="return">
+			<result>/WEB-INF/jsp/main.jsp</result>
+		</action>
+		
+		<!-- 修改用户信息的Action -->
+		<action name="update_*" class="updateUserAction" method="{1}">
+			<result name="updatePage">/WEB-INF/jsp/updateuser.jsp</result>
+			<result name="success">/WEB-INF/jsp/opsuccess.jsp</result>
+		</action>
+		
+		<!-- 添加用户信息的Action -->
+		<action name="add_*" class="addUserAction" method="{1}">
+			<result name="setUserPage">/WEB-INF/jsp/adduser.jsp</result>
+			<result name="success">/WEB-INF/jsp/opsuccess.jsp</result>
+			<result name="input">/WEB-INF/jsp/adduser.jsp</result>
+		</action>
+		
+		<!-- 查询用户的Action -->
+		<action name="query_*" class="queryUserAction" method="{1}">
+			<result name="queryPage">/WEB-INF/jsp/queryuser.jsp</result>
+			<result name="input">/WEB-INF/jsp/queryuser.jsp</result>
+			<result name="fail">/WEB-INF/jsp/queryfail.jsp</result>
+			<result name="success">/WEB-INF/jsp/queryresult.jsp</result>
+		</action>
+		
+		<!-- 删除Cookie的Action -->
+		<action name="delCookie" class="delCookieAction">
+			<result name="success">/WEB-INF/jsp/opsuccess.jsp</result>
+		</action>
+		
+	</package>
+	
+</struts>
